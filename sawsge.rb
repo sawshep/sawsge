@@ -4,19 +4,25 @@ require 'pathname'
 require 'fileutils'
 require 'nokogiri'
 
+SRC_DIR = Pathname.new("src")
+OUT_DIR = Pathname.new("out")
+
 # Tells you what's inside the tag of your choosing
 def parse_tag(html, tag)
   title = Nokogiri::HTML(html).css(tag).text
 end
 
 class Page
+  CONTENT_TITLE_TAG = "h1"
   attr_reader :path, :title, :content
-  def initialize(path, title, content)
+  def initialize(path)
+    # We should be chdir-ed into the src dir when this is run
+    @content = File.new(path, "r").read
     @path = path
-    @title = title
-    @content = content
+    @title = parse_tag(content, CONTENT_TITLE_TAG)
   end
 
+  # Returns the full html, with header/footer modified to needs
   def build(header, footer)
     header.sub!("<title></title>", "<title>#{title}</title")
     return header + @content + footer
@@ -25,10 +31,19 @@ end
 
 # Separated from Page for extensibility in the future
 class Post < Page
-  def initialize(path, title, content)
-    super(path, title, content)
-    @path = path
+  def initialize(path)
+    super(path)
     #@date = date
+  end
+end
+
+class Home < Page
+  def initialize(path, posts)
+    super(path)
+    posts.each do |post|
+      link = "<p><a href=\"/#{post.path}\">#{post.title}</a></p>"
+      @content += link
+    end
   end
 end
 
@@ -38,55 +53,34 @@ class Website
   POSTS_DIR = "post"
   HOME_PATH = "index.html"
   def initialize(src_dir, out_dir)
-    @cwd = Dir.pwd
-    @src_dir = src_dir
-    @out_dir = out_dir
-    @header = File.new(@src_dir + HEADER_PATH, "r").read
-    @footer = File.new(@src_dir + FOOTER_PATH, "r").read
+    @src_dir = File.expand_path(src_dir)
+    @out_dir = File.expand_path(out_dir)
 
-    # TODO: These two functions do too much.
-    # Maybe Pages should simply take a path as an
-    # argument and figure out how to modify it's
-    # content accordingly itself. However, issues
-    # arrise if I still want Post to be a subclass
-    # of Page.
-    @posts = make_posts
-    @home = make_home
+    Dir.chdir @src_dir
+
+    @header = File.new(HEADER_PATH, "r").read
+    @footer = File.new(FOOTER_PATH, "r").read
+
+    @posts = Array.new
+    Dir.glob(POSTS_DIR + "/**/*.html").reverse.each do |path|
+      @posts.append(Post.new(path))
+    end
+
+    @home = Home.new(HOME_PATH, @posts)
 
     @pages = @posts.append(@home)
-
-  end
-
-  def make_posts
-    posts = Array.new
-    # Reverse so the latest dates will be at the start
-    Dir.chdir @src_dir
-    paths = Dir.glob(POSTS_DIR + "/**/*.html").reverse
-    Dir.chdir @cwd
-
-    paths.each do |path|
-      content = File.new(@src_dir + path, "r").read
-      title = parse_tag(content, "h1")
-      posts.append(Post.new(path, title, content))
-    end
-    return posts
-  end
-
-  def make_home
-    content = File.new(@src_dir + HOME_PATH, "r").read
-    title = parse_tag(content, "h1")
-    @posts.each do |post|
-      content += "<a href=\"/#{post.path}\">#{post.title}</a></br>"
-    end
-    return Page.new(HOME_PATH, title, content)
   end
 
   def build
+    # Make out directory
+    FileUtils.mkpath(@out_dir)
+    Dir.chdir @out_dir
+
+    # Write each page
     @pages.each do |page|
       html = page.build(@header, @footer)
-      out_path = @out_dir + page.path
-      FileUtils.mkpath(Pathname.new(out_path).dirname)
-      File.new(out_path, "w").syswrite(html)
+      FileUtils.mkpath(Pathname.new(page.path).dirname)
+      File.new(page.path, "w").syswrite(html)
     end
   end
 end
