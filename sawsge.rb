@@ -24,16 +24,19 @@ class Page
 
   # Returns the full html, with header/footer modified to needs
   def build(header, footer)
-    header.sub!("<title></title>", "<title>#{title}</title")
+    header = header.sub("<title></title>", "<title>#{title}</title")
     return header + @content + footer
   end
 end
 
 # Separated from Page for extensibility in the future
 class Post < Page
+  SUMMARY_TAG = "summary"
+  attr_reader :summary
   def initialize(path)
     super(path)
     #@date = date
+    @summary = parse_tag(@content, SUMMARY_TAG)
   end
 end
 
@@ -41,17 +44,18 @@ class Home < Page
   def initialize(path, posts)
     super(path)
     posts.each do |post|
-      link = "<p><a href=\"/#{post.path}\">#{post.title}</a></p>"
+      link = "<details><summary><a href=\"/#{post.path}\">#{post.title}</a></summary><p>#{post.summary}</p></details>"
       @content += link
     end
   end
 end
 
 class Website
-  HEADER_PATH = "header.html"
-  FOOTER_PATH = "footer.html"
+  HEADER_PATH = Pathname.new("header.html")
+  FOOTER_PATH = Pathname.new("footer.html")
   POSTS_DIR = "post"
   HOME_PATH = "index.html"
+  STYLESHEET_PATH = "style.css"
   def initialize(src_dir, out_dir)
     @src_dir = File.expand_path(src_dir)
     @out_dir = File.expand_path(out_dir)
@@ -60,6 +64,8 @@ class Website
 
     @header = File.new(HEADER_PATH, "r").read
     @footer = File.new(FOOTER_PATH, "r").read
+
+    @style = File.new(STYLESHEET_PATH, "r").read
 
     @posts = Array.new
     Dir.glob(POSTS_DIR + "/**/*.html").reverse.each do |path|
@@ -82,6 +88,8 @@ class Website
       FileUtils.mkpath(Pathname.new(page.path).dirname)
       File.new(page.path, "w").syswrite(html)
     end
+    # Copy stylesheet over
+    File.new(STYLESHEET_PATH, "w").syswrite(@style)
   end
 end
 
