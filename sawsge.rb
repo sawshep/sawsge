@@ -47,7 +47,7 @@ class Post < Page
     @date = "#{parts[0]}-#{parts[1]}-#{parts[2]}"
 
     @summary = parse_tag(@content, SUMMARY_TAG)
-    @content = @content.sub("<date></date>", "<date>#{@date}</date>")
+    @content = @content.sub("</h1>", "</h1><date>#{@date}</date>")
   end
 end
 
@@ -77,8 +77,8 @@ class Website
   HOME_PATH = Pathname.new("index.html")
   STYLESHEET_PATH = "style.css"
   def initialize(src_dir, out_dir)
-    @src_dir = File.expand_path(src_dir)
-    @out_dir = File.expand_path(out_dir)
+    @src_dir = Pathname.new(File.expand_path(src_dir))
+    @out_dir = Pathname.new(File.expand_path(out_dir))
 
     Dir.chdir @src_dir
 
@@ -87,7 +87,8 @@ class Website
     @style = File.new(STYLESHEET_PATH, "r").read
 
     @posts = Array.new
-    Dir.glob(POSTS_DIR + "/**/*.html").reverse.each do |path|
+    # Every html file in src/posts
+    Dir.glob(POSTS_DIR + "/**/*.*").reverse.each do |path|
       path = Pathname.new(path)
       @posts.append(Post.new(path))
     end
@@ -98,6 +99,10 @@ class Website
   end
 
   def build
+    # Delete any old out dir
+    if @out_dir.exist?
+      FileUtils.remove_dir(@out_dir)
+    end
     # Make out directory
     FileUtils.mkpath(@out_dir)
     Dir.chdir @out_dir
