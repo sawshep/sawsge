@@ -1,122 +1,148 @@
 #! /usr/bin/env ruby
 
-require 'pathname'
 require 'fileutils'
 require 'nokogiri'
 
-SRC_DIR = Pathname.new("src")
-OUT_DIR = Pathname.new("out")
+require 'pandoc-ruby'
+
+SRC_FOLDER = "src"
+OUT_FOLDER = "out"
+POST_FOLDER = "post"
+
+ROOT_DIR = Dir.pwd
+SRC_DIR = File.join(ROOT_DIR, SRC_FOLDER)
+OUT_DIR = File.join(ROOT_DIR, OUT_FOLDER)
+
+HEADER_PATH = "header.html"
+FOOTER_PATH = "footer.html"
+HEADER = File.new(File.join(SRC_DIR, HEADER_PATH)).read
+FOOTER = File.new(File.join(SRC_DIR, FOOTER_PATH)).read
+
 
 # Tells you what's inside the tag of your choice
 def parse_tag(html, tag)
   title = Nokogiri::HTML(html).css(tag).text
 end
 
-# Generic for homepage, posts, maybe css sheet in the future
-class Page
-  CONTENT_TITLE_TAG = "h1"
-  attr_reader :path, :title, :content
-  def initialize(path)
-    # We should be chdir-ed into the src dir when this is run, no
-    # need for src at the start of the path.
-    @content = File.new(path, "r").read 
-    @path = path.dirname # so the url won't have index.html in it
-    @title = parse_tag(content, CONTENT_TITLE_TAG)
-  end
 
-  # Returns the full html, with header/footer modified to needs
-  def build(header, footer)
-    header = header.sub("<title></title>", "<title>#{title}</title")
-    return header + @content + footer
+# Any generic file in the website directory
+class Resource
+  attr_reader :path
+  def initialize(path)
+    # Path is relative to SRD_DIR, does not include it
+    @path = path
+  end
+  def build
+    FileUtils.cp File.join(SRC_DIR, @path), File.join(OUT_DIR, @path)
   end
 end
 
-# Class for blogposts
+
+class Page < Resource
+  attr_reader :title
+  def initialize(path)
+    super(path)
+    @content = PandocRuby.convert(File.new(File.join(SRC_DIR, @path), "r").read, from: :markdown, to: :html)
+    @title = parse_tag(@content, "h1")
+    @content = HEADER + @content + FOOTER
+    # Sub replaces the first occurance
+    @content.sub!("<title></title>", "<title>#{@title}</title")
+  end
+
+  def build
+    FileUtils.mkpath(File.join(OUT_DIR, File.dirname(@path)))
+    File.new(File.join(OUT_DIR, @path.sub("index.md", "index.html")), "w").syswrite(@content)
+  end
+end
+
 class Post < Page
-  SUMMARY_TAG = "summary"
-  attr_reader :summary, :date
+  attr_reader :date, :summary
   def initialize(path)
     super(path)
 
-    # TODO: There has to be a more idomatic way to do this...
-    # Split the dir names into an array, remove the first one
-    # because it's always POSTS_DIR. Now, if you didn't want
-    # to have any directory for your posts you're going to have
-    # a bad time.
+    # There's got to be a more idiomatic way to do this! The
+    # current implementation is disguisting.
     parts = @path.each_filename.to_a[1..]
+    [SRC_FOLDER, POST_FOLDER].each do |dirname|
+      parts.delete(dirname)
+    end
     @date = "#{parts[0]}-#{parts[1]}-#{parts[2]}"
+    @content.sub!("</h1>", "</h1><date>#{@date}</date>")
 
-    @summary = parse_tag(@content, SUMMARY_TAG)
-    @content = @content.sub("</h1>", "</h1><date>#{@date}</date>")
+    # Look what's in <summary></summary>
+    @summary = parse_tag(@content, "summary")
   end
 end
 
-# Class for homepage
 class Home < Page
   def initialize(path, posts)
     super(path)
     posts.each_with_index do |post, i|
-      # Adds title, date, summary of each post with first post expanded
+      # Adds title, date, summary of each post with first
+      # post expanded
       link =  "<details#{i == 0 ? " open" : ""}>" +
                 "<summary>" +
-                  "<a href=\"/#{post.path}\">#{post.title}</a> <date>#{post.date}</date>" +
+                  "<a href=\"/#{File.dirname(post.path)}\">#{post.title}</a> <date>#{post.date}</date>" +
                 "</summary>" +
                 "<p>#{post.summary}</p>" +
+                "<a href=\"#{post.path.dirname}\">Read more</a>" +
               "</details>";
       @content += link
     end
   end
 end
 
-class Website
-  HEADER_PATH = Pathname.new("header.html")
-  FOOTER_PATH = Pathname.new("footer.html")
-  # For some reason, the program hangs indefinitely if POSTS_DIR
-  # is a Pathname type. WTH!?
-  POSTS_DIR = "post"
-  HOME_PATH = Pathname.new("index.html")
-  STYLESHEET_PATH = "style.css"
-  def initialize(src_dir, out_dir)
-    @src_dir = Pathname.new(File.expand_path(src_dir))
-    @out_dir = Pathname.new(File.expand_path(out_dir))
+# Scan for links in files, if resource exists in path dont
+# do anything, otherwise mv from src to out
+Dir.chdir SRC_DIR
 
-    Dir.chdir @src_dir
+home_path = "index.md"
+post_paths = Dir.glob(File.join(POST_FOLDER, "**/*.md"))
 
-    @header = File.new(HEADER_PATH, "r").read
-    @footer = File.new(FOOTER_PATH, "r").read
-    @style = File.new(STYLESHEET_PATH, "r").read
-
-    @posts = Array.new
-    # Every html file in src/posts
-    Dir.glob(POSTS_DIR + "/**/*.*").reverse.each do |path|
-      path = Pathname.new(path)
-      @posts.append(Post.new(path))
-    end
-
-    @home = Home.new(HOME_PATH, @posts)
-
-    @pages = @posts.append(@home)
-  end
-
-  def build
-    # Delete any old out dir
-    if @out_dir.exist?
-      FileUtils.remove_dir(@out_dir)
-    end
-    # Make out directory
-    FileUtils.mkpath(@out_dir)
-    Dir.chdir @out_dir
-
-    # Write each page
-    @pages.each do |page|
-      html = page.build(@header, @footer)
-      FileUtils.mkpath(Pathname.new(page.path))
-      File.new(page.path.join("index.html"), "w").syswrite(html)
-    end
-    # Copy stylesheet over
-    # TODO: Find a better way to do this besides hardcoding
-    File.new(STYLESHEET_PATH, "w").syswrite(@style)
+resource_paths = Dir.glob("**/*")
+dirs = Array.new
+resource_paths.each do |path|
+  if Dir.exist?(path)
+    dirs.push path
   end
 end
+# This is kind of a slow way to do it, but it's readable and
+# it works
+resource_paths -= (dirs + post_paths + [home_path, HEADER_PATH, FOOTER_PATH])
+Dir.chdir ROOT_DIR
 
-Website.new(Pathname.new("src"), Pathname.new("out")).build
+
+# Initialize all the posts
+posts = Array.new
+post_paths.each do |path|
+  path = Pathname.new(path)
+  # Posts should be automatically sorted if using ISO date
+  # format
+  posts.push Post.new(path)
+end
+# So dates are in order
+posts.reverse!
+
+
+home = Home.new(home_path, posts)
+
+
+resources = Array.new
+resource_paths.each do |path|
+  resources.push Resource.new(path)
+end
+
+
+all_files = posts + resources
+all_files.push home
+
+# Delete any old builds
+if Pathname.new(OUT_DIR).exist?
+  FileUtils.remove_dir OUT_DIR
+end
+FileUtils.mkpath OUT_DIR
+
+# Write each file
+all_files.each do |file|
+  file.build
+end
