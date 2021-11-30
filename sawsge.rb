@@ -80,7 +80,8 @@ class Home < Page
     posts.each_with_index do |post, i|
       # Adds title, date, summary of each post with first
       # post expanded
-      link =  "<details#{i == 0 ? " open" : ""}>" +
+      #link =  "<details#{i == 0 ? " open" : ""}>" +
+      link =  "<details open>" +
                 "<summary>" +
                   "<a href=\"/#{File.dirname(post.path)}\">#{post.title}</a> <date>#{post.date}</date>" +
                 "</summary>" +
