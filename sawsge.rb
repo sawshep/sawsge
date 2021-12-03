@@ -2,8 +2,13 @@
 
 require 'fileutils'
 require 'nokogiri'
-
 require 'pandoc-ruby'
+
+require_relative 'resource.rb'
+require_relative 'page.rb'
+require_relative 'post.rb'
+require_relative 'home.rb'
+
 
 SRC_FOLDER = "src"
 OUT_FOLDER = "out"
@@ -24,74 +29,6 @@ def parse_tag(html, tag)
   title = Nokogiri::HTML(html).css(tag).text
 end
 
-
-# Any generic file in the website directory
-class Resource
-  attr_reader :path
-  def initialize(path)
-    # Path is relative to SRD_DIR, does not include it
-    @path = path
-  end
-  def build
-    FileUtils.cp File.join(SRC_DIR, @path), File.join(OUT_DIR, @path)
-  end
-end
-
-
-class Page < Resource
-  attr_reader :title
-  def initialize(path)
-    super(path)
-    @content = PandocRuby.convert(File.new(File.join(SRC_DIR, @path), "r").read, from: :markdown, to: :html)
-    @title = parse_tag(@content, "h1")
-    @content = HEADER + @content + FOOTER
-    # Sub replaces the first occurance
-    @content.sub!("<title></title>", "<title>#{@title}</title")
-  end
-
-  def build
-    FileUtils.mkpath(File.join(OUT_DIR, File.dirname(@path)))
-    File.new(File.join(OUT_DIR, @path.sub("index.md", "index.html")), "w").syswrite(@content)
-  end
-end
-
-class Post < Page
-  attr_reader :date, :summary
-  def initialize(path)
-    super(path)
-
-    # There's got to be a more idiomatic way to do this! The
-    # current implementation is disguisting.
-    parts = @path.each_filename.to_a[1..]
-    [SRC_FOLDER, POST_FOLDER].each do |dirname|
-      parts.delete(dirname)
-    end
-    @date = "#{parts[0]}-#{parts[1]}-#{parts[2]}"
-    @content.sub!("</h1>", "</h1><date>#{@date}</date>")
-
-    # Look what's in <summary></summary>
-    @summary = parse_tag(@content, "summary")
-  end
-end
-
-class Home < Page
-  def initialize(path, posts)
-    super(path)
-    posts.each_with_index do |post, i|
-      # Adds title, date, summary of each post with first
-      # post expanded
-      #link =  "<details#{i == 0 ? " open" : ""}>" +
-      link =  "<details open>" +
-                "<summary>" +
-                  "<a href=\"/#{File.dirname(post.path)}\">#{post.title}</a> <date>#{post.date}</date>" +
-                "</summary>" +
-                "<p>#{post.summary}</p>" +
-                "<a href=\"#{post.path.dirname}\">Read more</a>" +
-              "</details>";
-      @content += link
-    end
-  end
-end
 
 # Scan for links in files, if resource exists in path dont
 # do anything, otherwise mv from src to out
