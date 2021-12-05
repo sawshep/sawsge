@@ -2,10 +2,11 @@
 class Resource
   attr_reader :path
   def initialize(path)
-    # Path is relative to SRD_DIR, does not include it
+    # Path is relative to SRC_DIR, does not include it
     @path = path
   end
   def build
-    FileUtils.cp File.join(SRC_DIR, @path), File.join(OUT_DIR, @path)
+    FileUtils.mkpath File.join(OUT_DIRNAME, File.dirname(@path))
+    FileUtils.cp @path, File.join(OUT_DIRNAME, @path)
   end
 end

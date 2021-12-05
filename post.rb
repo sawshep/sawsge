@@ -6,10 +6,10 @@ class Post < Page
 
     # There's got to be a more idiomatic way to do this! The
     # current implementation is disguisting.
-    parts = @path.each_filename.to_a[1..]
-    [SRC_FOLDER, POST_FOLDER].each do |dirname|
-      parts.delete(dirname)
-    end
+    # Also doesn't work if POSTS_DIRNAME is more than 2
+    # directories
+    parts = Pathname.new(@path).each_filename.to_a[1..]
+    parts.delete(POSTS_DIRNAME)
     @date = "#{parts[0]}-#{parts[1]}-#{parts[2]}"
     @content.sub!("</h1>", "</h1><date>#{@date}</date>")
 

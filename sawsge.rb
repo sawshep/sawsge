@@ -1,86 +1,132 @@
 #! /usr/bin/env ruby
 
-require 'fileutils'
-require 'nokogiri'
-require 'pandoc-ruby'
+require "fileutils"
+require "nokogiri"
+require "pandoc-ruby"
+require "toml"
+require "pathname"
 
 require_relative 'resource.rb'
 require_relative 'page.rb'
 require_relative 'post.rb'
 require_relative 'home.rb'
 
+HELP_STRING = "Usage: sawsge DIRECTORY"
 
-SRC_FOLDER = "src"
-OUT_FOLDER = "out"
-POST_FOLDER = "post"
+if ARGV.length != 1
+  abort HELP_STRING
+end
 
-ROOT_DIR = Dir.pwd
-SRC_DIR = File.join(ROOT_DIR, SRC_FOLDER)
-OUT_DIR = File.join(ROOT_DIR, OUT_FOLDER)
+SRC_DIR = ARGV[0]
 
-HEADER_PATH = "header.html"
-FOOTER_PATH = "footer.html"
-HEADER = File.new(File.join(SRC_DIR, HEADER_PATH)).read
-FOOTER = File.new(File.join(SRC_DIR, FOOTER_PATH)).read
+CONFIG_FILENAME = 'config.toml'
+CONFIG_STRING = File.new(File.join(SRC_DIR, CONFIG_FILENAME)).read
+CONFIG = TOML::Parser.new(CONFIG_STRING).parsed
 
+OUT_DIRNAME = CONFIG['general']['out_dirname']
+
+# TODO: Put these in the config
+POSTS_DIRNAME = CONFIG['blog']['posts_dirname']
+
+
+HEADER_FILENAME = CONFIG['general']['header_filename']
+FOOTER_FILENAME = CONFIG['general']['footer_filename']
+
+# If there is no path for the header and footer, neither
+# header nor footer is added. Basically an ifndef
+# TODO: Maybe there's a higher order way to do this? I don't
+# think you're supposed to use if blocks like this, at least
+# in Ruby.
+HEADER = if HEADER_FILENAME.empty?
+           ''
+         else
+           File.new(File.join(SRC_DIR, HEADER_FILENAME)).read
+         end
+FOOTER = if FOOTER_FILENAME.empty?
+           ''
+         else
+           File.new(File.join(SRC_DIR, FOOTER_FILENAME)).read
+         end
+
+# Resources that will not be put into the out folder
+RESERVED_FILENAMES = [CONFIG_FILENAME, HEADER_FILENAME, FOOTER_FILENAME]
+
+MODE = CONFIG['general']['mode']
 
 # Tells you what's inside the tag of your choice
 def parse_tag(html, tag)
-  title = Nokogiri::HTML(html).css(tag).text
+  Nokogiri::HTML(html).css(tag).text
+end
+
+def top_parent_dir(path)
+  Pathname.new(path).each_filename.to_a[0]
 end
 
 
-# Scan for links in files, if resource exists in path dont
-# do anything, otherwise mv from src to out
+
+
+# Gross, but easy
 Dir.chdir SRC_DIR
 
-home_path = "index.md"
-post_paths = Dir.glob(File.join(POST_FOLDER, "**/*.md"))
+# resource_paths is a glob for all files in the source
+# directory
+resource_paths = Dir.glob("**/*").select do |path|
+  File.file?(path) && top_parent_dir(path) != OUT_DIRNAME
+end
+resource_paths -= RESERVED_FILENAMES
 
-resource_paths = Dir.glob("**/*")
-dirs = Array.new
-resource_paths.each do |path|
-  if Dir.exist?(path)
-    dirs.push path
+resource_objects = Array.new
+all_objects = Array.new
+
+case MODE
+when 'blog'
+  home_path = "index.md"
+
+  # Does not work if you have parent directories for your
+  # posts dir, e.g. you set posts_dirname in config.toml to
+  # foo/bar/baz/etc...
+  post_paths = resource_paths.select do |path|
+    top_parent_dir(path) == POSTS_DIRNAME && File.extname(path) == ".md"
   end
+  puts post_paths
+
+  # This is kind of a slow way to do it, but it's readable and
+  # it works
+  resource_paths -= post_paths
+  resource_paths.delete(home_path)
+
+  post_objects = post_paths.map { |path| Post.new(path) }
+  # Because the directory structure of posts should be
+  # /post_dirname/yyyy/mm/dd, the glob will read them in
+  # order from least to greatest. Therefore, reverse the
+  # array to have most recent posts at the front.
+  post_objects.reverse!
+
+  home_object = Home.new(home_path, post_objects)
+  all_objects = post_objects + [home_object]
+
+when 'project'
+  page_paths = resource_paths.select { |path| File.extname(path) == ".md" }
+
+  resource_paths -= page_paths
+
+  page_objects = page_paths.map { |path| Page.new(path) }
+  all_objects = page_objects
+else
+  abort HELP_STRING
 end
-# This is kind of a slow way to do it, but it's readable and
-# it works
-resource_paths -= (dirs + post_paths + [home_path, HEADER_PATH, FOOTER_PATH])
-Dir.chdir ROOT_DIR
 
 
-# Initialize all the posts
-posts = Array.new
-post_paths.each do |path|
-  path = Pathname.new(path)
-  # Posts should be automatically sorted if using ISO date
-  # format
-  posts.push Post.new(path)
-end
-# So dates are in order
-posts.reverse!
+resources = resource_paths.map { |path| Resource.new(path) }
+all_objects += resources
 
-
-home = Home.new(home_path, posts)
-
-
-resources = Array.new
-resource_paths.each do |path|
-  resources.push Resource.new(path)
-end
-
-
-all_files = posts + resources
-all_files.push home
 
 # Delete any old builds
-if Pathname.new(OUT_DIR).exist?
-  FileUtils.remove_dir OUT_DIR
+if Pathname.new(OUT_DIRNAME).exist?
+  FileUtils.remove_dir OUT_DIRNAME
 end
-FileUtils.mkpath OUT_DIR
+FileUtils.mkpath OUT_DIRNAME
+
 
 # Write each file
-all_files.each do |file|
-  file.build
-end
+all_objects.each { |object| object.build }
