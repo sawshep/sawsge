@@ -1,17 +1,17 @@
 #! /usr/bin/env ruby
 
-require "fileutils"
-require "nokogiri"
-require "pandoc-ruby"
-require "toml"
-require "pathname"
+require 'fileutils'
+require 'nokogiri'
+require 'pandoc-ruby'
+require 'toml'
+require 'pathname'
 
 require_relative 'resource.rb'
 require_relative 'page.rb'
 require_relative 'post.rb'
 require_relative 'home.rb'
 
-HELP_STRING = "Usage: sawsge DIRECTORY"
+HELP_STRING = 'Usage: sawsge DIRECTORY'
 
 if ARGV.length != 1
   abort HELP_STRING
@@ -70,7 +70,7 @@ Dir.chdir SRC_DIR
 
 # resource_paths is a glob for all files in the source
 # directory
-resource_paths = Dir.glob("**/*").select do |path|
+resource_paths = Dir.glob('**/*').select do |path|
   File.file?(path) && top_parent_dir(path) != OUT_DIRNAME
 end
 resource_paths -= RESERVED_FILENAMES
@@ -80,13 +80,13 @@ all_objects = Array.new
 
 case MODE
 when 'blog'
-  home_path = "index.md"
+  home_path = 'index.md'
 
   # Does not work if you have parent directories for your
   # posts dir, e.g. you set posts_dirname in config.toml to
   # foo/bar/baz/etc...
   post_paths = resource_paths.select do |path|
-    top_parent_dir(path) == POSTS_DIRNAME && File.extname(path) == ".md"
+    top_parent_dir(path) == POSTS_DIRNAME && File.extname(path) == '.md'
   end
   puts post_paths
 
@@ -106,7 +106,7 @@ when 'blog'
   all_objects = post_objects + [home_object]
 
 when 'project'
-  page_paths = resource_paths.select { |path| File.extname(path) == ".md" }
+  page_paths = resource_paths.select { |path| File.extname(path) == '.md' }
 
   resource_paths -= page_paths
 
