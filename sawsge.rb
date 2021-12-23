@@ -3,8 +3,9 @@
 require 'fileutils'
 require 'nokogiri'
 require 'pandoc-ruby'
-require 'toml'
 require 'pathname'
+require 'toml'
+require 'uri'
 
 require_relative 'resource.rb'
 require_relative 'page.rb'
@@ -48,20 +49,17 @@ FOOTER = if FOOTER_FILENAME.empty?
            File.new(File.join(SRC_DIR, FOOTER_FILENAME)).read
          end
 
+EXTERNAL_LINKS_TARGET_BLANK = CONFIG['general']['external_links_target_blank']
+
 # Resources that will not be put into the out folder
 RESERVED_FILENAMES = [CONFIG_FILENAME, HEADER_FILENAME, FOOTER_FILENAME]
 
 MODE = CONFIG['general']['mode']
 
-# Tells you what's inside the tag of your choice
-def parse_tag(html, tag)
-  Nokogiri::HTML(html).css(tag).text
-end
 
 def top_parent_dir(path)
   Pathname.new(path).each_filename.to_a[0]
 end
-
 
 
 
@@ -95,13 +93,8 @@ when 'blog'
   resource_paths -= post_paths
   resource_paths.delete(home_path)
 
+  # This array will be in order from past to present.
   post_objects = post_paths.map { |path| Post.new(path) }
-  # Because the directory structure of posts should be
-  # /post_dirname/yyyy/mm/dd, the glob will read them in
-  # order from least to greatest. Therefore, reverse the
-  # array to have most recent posts at the front.
-  post_objects.reverse!
-
   home_object = Home.new(home_path, post_objects)
   all_objects = post_objects + [home_object]
 

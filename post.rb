@@ -11,9 +11,9 @@ class Post < Page
     parts = Pathname.new(@path).each_filename.to_a[1..]
     parts.delete(POSTS_DIRNAME)
     @date = "#{parts[0]}-#{parts[1]}-#{parts[2]}"
-    @content.sub!("</h1>", "</h1><date>#{@date}</date>")
+    @body.css('h1').first.add_next_sibling "<date>#{@date}</date>"
 
     # Look what's in <summary></summary>
-    @summary = parse_tag(@content, "summary")
+    @summary = @document.css('summary').first.content
   end
 end
