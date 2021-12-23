@@ -1,0 +1,21 @@
+[general]
+# For now this can only be a single directory, no
+# subdirectories allowed!
+out_dirname = "out"
+
+# "blog" or "project"
+mode = "project"
+
+# If (header|footer)_filename is an empty string, no header
+# or footer will be added to the rendered pages, although
+# for now this will build a broken website.
+header_filename = "header.html"
+footer_filename = "footer.html"
+
+# All external links will be given the `target=_blank`
+# attribute, opening them in new tabs when clicked, unless
+# the link has a user-set target.
+external_links_target_blank = true
+
+[blog]
+posts_dirname = "post"
