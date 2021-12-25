@@ -13,7 +13,10 @@ class Page < Resource
 
     # Parse the body fragment instead of the whole document,
     # as the header may have another h1 within
-    @title = @body.at_css('h1').content
+    @title = begin
+               h1 = @body.at_css('h1')
+               h1 ? h1.content : ''
+             end
     @document.at_css('title').content = @title
 
     if EXTERNAL_LINKS_TARGET_BLANK
