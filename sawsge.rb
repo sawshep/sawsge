@@ -86,14 +86,14 @@ when 'blog'
   post_paths = resource_paths.select do |path|
     top_parent_dir(path) == POSTS_DIRNAME && File.extname(path) == '.md'
   end
-  puts post_paths
+  # So posts are added to Home in chronological order
+  post_paths.reverse!
 
   # This is kind of a slow way to do it, but it's readable and
   # it works
   resource_paths -= post_paths
   resource_paths.delete(home_path)
 
-  # This array will be in order from past to present.
   post_objects = post_paths.map { |path| Post.new(path) }
   home_object = Home.new(home_path, post_objects)
   all_objects = post_objects + [home_object]
