@@ -17,5 +17,9 @@ footer_filename = "footer.html"
 # the link has a user-set target.
 external_links_target_blank = true
 
+# A list of files, relative to the src root, to exclude from
+# builds
+ignore = ["README.md"]
+
 [blog]
 posts_dirname = "post"

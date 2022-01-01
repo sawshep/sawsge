@@ -51,8 +51,10 @@ FOOTER = if FOOTER_FILENAME.empty?
 
 EXTERNAL_LINKS_TARGET_BLANK = CONFIG['general']['external_links_target_blank']
 
+IGNORE = CONFIG['general']['ignore']
+
 # Resources that will not be put into the out folder
-RESERVED_FILENAMES = [CONFIG_FILENAME, HEADER_FILENAME, FOOTER_FILENAME]
+RESERVED_FILENAMES = [CONFIG_FILENAME, HEADER_FILENAME, FOOTER_FILENAME] + IGNORE
 
 MODE = CONFIG['general']['mode']
 
