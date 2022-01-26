@@ -35,7 +35,7 @@ class Page < Resource
         else
           host = uri.host
           scheme = uri.scheme
-          host.nil? or host.empty? or scheme == "mailto" or (not link['target'].nil?)
+          host.nil? or host.empty? or scheme == 'mailto' or (not link['target'].nil?)
         end
       end
       external_links.each { |link| link['target'] = '_blank' }
@@ -45,7 +45,7 @@ class Page < Resource
 
   def build
     serialized_html = @document.serialize
-    out_path = File.join(OUT_DIRNAME, @path.sub("index.md", "index.html"))
+    out_path = File.join(OUT_DIRNAME, @path.sub('index.md', 'index.html'))
     out_dir = File.join(OUT_DIRNAME, File.dirname(@path))
 
     FileUtils.mkpath out_dir
