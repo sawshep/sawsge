@@ -21,6 +21,15 @@ mode = "project"
 header_filename = "header.html"
 footer_filename = "footer.html"
 
+# All external links will be given the `target=_blank`
+# attribute, opening them in new tabs when clicked, unless
+# the link has a user-set target.
+external_links_target_blank = true
+
+# A list of files, relative to the src root, to exclude from
+# builds
+ignore = ["README.md"]
+
 [blog]
 posts_dirname = "post"
 ```
