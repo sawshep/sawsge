@@ -1,4 +1,5 @@
 # sawsge
+
 My simple static site generator for blogs or projects.
 
 ## Installation
@@ -14,10 +15,20 @@ installed.
 
 Install from the AUR: `paru -S sawsge`
 
+## Usage
+
+Run `sawsge [DIRECTORY]` where `[DIRECTORY]` is the source
+directory root. If `[DIRECTORY]` is not provided, Sawsge
+will target `./`
+
 ## File Structure
-In the source directory root should exist `header.html`, `footer.html`, and `config.toml`. Additional files may need to exist for different modes.
+
+In the source directory root should exist `header.html`,
+`footer.html`, and `config.toml`. Additional files may need
+to exist for different modes.
 
 ## Config
+
 Here's an example config for a project:
 ```toml
 [general]
@@ -48,10 +59,21 @@ posts_dirname = "post"
 ```
 
 # General Operation
-Sawsge makes all links on the site point to directories, so there is no `index.html` at the end of any URL (example.com/thing/index.html vs example.com/thing/). Sawsge will build your website to `out_dirname` in your config; make sure there are no files in there, as they will be deleted! 
+Sawsge makes all links on the site point to directories, so
+there is no `index.html` at the end of any URL
+(example.com/thing/index.html vs example.com/thing/). Sawsge
+will build your website to `out_dirname` in your config;
+make sure there are no files in there, as they will be
+deleted!
 
 ## Blog Mode
-Blog mode creates a special homepage with the title and a summary of each post, with latest posts at the top. In blog mode, sawsge will look for posts under `posts_dirname` in the config. In `posts_dirname`, each post should be in a directory specifying its date in YYYY/MM/DD format, e.g. `/[posts_dirname]/2021/03/09/index.md`. In its source, the post should include at least one `<h1></h1>` and one `<summary></summary>`HTML block. Both will be used to generate the summary on the front page.
+Blog mode creates a special homepage with the title and a
+summary of each post, with latest posts at the top. In blog
+mode, sawsge will look for posts under `posts_dirname` in
+the config. In `posts_dirname`, each post should be in a
+directory specifying its date in YYYY/MM/DD format, e.g.
+`/[posts_dirname]/2021/03/09/index.md`. In its source, the
+post should include at least one `<h1></h1>` and one
+`<summary></summary>`HTML block. Both will be used to
+generate the summary on the front page.
 
-## Usage
-Run `sawsge [dir]` where `[dir]` is the source directory root.
