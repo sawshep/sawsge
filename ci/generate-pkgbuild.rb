@@ -5,14 +5,16 @@ require 'json'
 require 'net/http'
 require 'uri'
 
+
 GEM_NAME = 'sawsge'
 PKG_NAME = GEM_NAME
-
 
 ci_dir = File.expand_path(File.dirname(__FILE__))
 repo_root = File.expand_path(File.join(ci_dir, '..'))
 
 require_relative File.join(repo_root, "lib/#{GEM_NAME}/version")
+
+VERSION = Sawsge::VERSION
 
 # Get the sha256sum from RubyGems
 gems_api_uri = URI.parse("https://rubygems.org/api/v1/gems/#{GEM_NAME}.json")
@@ -23,22 +25,32 @@ sha256sum = JSON.parse(gems_api_response.body)["sha"]
 old_pkgbuild_uri = URI.parse("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=#{PKG_NAME}")
 pkgbuild_response = Net::HTTP.get_response(old_pkgbuild_uri)
 
-pkgrel_regex = /^pkgrel=([0-9]+?)$/
+version_regex = /^pkgver=(.+?)$/
+old_version = if pkgbuild_response.code == '404'
+                nil
+              else
+                version_regex.match(pkgbuild_response.body)[1]
+              end
 
+pkgrel_regex = /^pkgrel=(\d+?)$/
 old_pkgrel = if pkgbuild_response.code == '404'
                0
              else
                pkgrel_regex.match(pkgbuild_response.body)[1]
              end
 
-new_pkgrel = old_pkgrel.to_i + 1
+new_pkgrel = if VERSION == old_version
+               old_pkgrel.to_i + 1
+             else
+               1
+             end
 
 pkgbuild = <<~PKGBUILD
   # Maintainer: Sawyer Shepherd <contact@sawyershepherd.org>
 
   _gemname=#{GEM_NAME}
   pkgname=#{PKG_NAME}
-  pkgver=#{Sawsge::VERSION}
+  pkgver=#{VERSION}
   pkgrel=#{new_pkgrel}
   pkgdesc='Simple Markdown static site generator for blogs or projects'
   arch=(any)
