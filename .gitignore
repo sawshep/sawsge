@@ -9,7 +9,7 @@
 /test/tmp/
 /test/version_tmp/
 /tmp/
-/out/
+out/
 /src/
 
 # Used by dotenv library to load environment variables.
