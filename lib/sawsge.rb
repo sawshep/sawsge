@@ -16,7 +16,6 @@ require_relative 'blog'
 require_relative 'project'
 
 module Sawsge
-
   HELP_STRING = 'Usage: sawsge [DIRECTORY]'
 
   SRC_DIR = ARGV[0] || Dir.pwd
@@ -29,7 +28,6 @@ module Sawsge
 
   # TODO: Put these in the config
   POSTS_DIRNAME = CONFIG['blog']['posts_dirname']
-
 
   HEADER_FILENAME = CONFIG['general']['header_filename']
   FOOTER_FILENAME = CONFIG['general']['footer_filename']
@@ -45,7 +43,6 @@ module Sawsge
   RESERVED_FILENAMES = [CONFIG_FILENAME, HEADER_FILENAME, FOOTER_FILENAME] + IGNORE
 
   MODE = CONFIG['general']['mode']
-
 
   # Returns the first directory in a path, eg.
   # `foo/bar/bin.txt` becomes `foo`
@@ -67,21 +64,16 @@ module Sawsge
     @resource_objects = Set.new
     @all_objects = Set.new
 
-
-    self.send MODE
+    send MODE
 
     resources = @resource_paths.map { |path| Resource.new(path) }
     @all_objects.merge resources
 
-
     # Delete any old builds
-    if Pathname.new(OUT_DIRNAME).exist?
-      FileUtils.remove_dir OUT_DIRNAME
-    end
+    FileUtils.remove_dir OUT_DIRNAME if Pathname.new(OUT_DIRNAME).exist?
     FileUtils.mkpath OUT_DIRNAME
 
-
     # Write each file
-    @all_objects.each { |object| object.build }
+    @all_objects.each(&:build)
   end
 end

@@ -5,11 +5,10 @@ require 'json'
 require 'net/http'
 require 'uri'
 
-
 GEM_NAME = 'sawsge'
 PKG_NAME = GEM_NAME
 
-ci_dir = File.expand_path(File.dirname(__FILE__))
+ci_dir = __dir__
 repo_root = File.expand_path(File.join(ci_dir, '..'))
 
 require_relative File.join(repo_root, "lib/#{GEM_NAME}/version")
@@ -19,7 +18,7 @@ VERSION = Sawsge::VERSION
 # Get the sha256sum from RubyGems
 gems_api_uri = URI.parse("https://rubygems.org/api/v1/gems/#{GEM_NAME}.json")
 gems_api_response = Net::HTTP.get_response(gems_api_uri)
-sha256sum = JSON.parse(gems_api_response.body)["sha"]
+sha256sum = JSON.parse(gems_api_response.body)['sha']
 
 # Get the old PKGBUILD from the AUR to find the old $pkgrel
 old_pkgbuild_uri = URI.parse("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=#{PKG_NAME}")

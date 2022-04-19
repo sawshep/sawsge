@@ -4,6 +4,7 @@ module Sawsge
   # A blogpost style HTML page
   class Post < Page
     attr_reader :date, :summary
+
     def initialize(path)
       super(path)
 
