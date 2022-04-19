@@ -59,6 +59,7 @@ posts_dirname = "post"
 ```
 
 # General Operation
+
 Sawsge makes all links on the site point to directories, so
 there is no `index.html` at the end of any URL
 (example.com/thing/index.html vs example.com/thing/). Sawsge
@@ -67,6 +68,7 @@ make sure there are no files in there, as they will be
 deleted!
 
 ## Blog Mode
+
 Blog mode creates a special homepage with the title and a
 summary of each post, with latest posts at the top. In blog
 mode, sawsge will look for posts under `posts_dirname` in
@@ -77,3 +79,8 @@ post should include at least one `<h1></h1>` and one
 `<summary></summary>`HTML block. Both will be used to
 generate the summary on the front page.
 
+## Project Mode
+
+Project mode is much simpler than blog mode. It performs no
+special handling with different files--each Markdown file
+will be generated as a plain page.
