@@ -5,7 +5,7 @@ My simple static site generator for blogs or projects.
 
 Sawsge is availible as a
 [Gem](https://rubygems.org/gems/sawsge) and as an [AUR
-package].
+package](https://aur.archlinux.org/packages/sawsge).
 
 Install as a Gem: `gem install sawsge`
 
