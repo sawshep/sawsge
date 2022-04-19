@@ -1,6 +1,19 @@
 # sawsge
 My simple static site generator for blogs or projects.
 
+## Installation
+
+Sawsge is availible as a
+[Gem](https://rubygems.org/gems/sawsge) and as an [AUR
+package].
+
+Install as a Gem: `gem install sawsge`
+
+**NOTE**: When installing as a Gem, Pandoc must also be
+installed.
+
+Install from the AUR: `paru -S sawsge`
+
 ## File Structure
 In the source directory root should exist `header.html`, `footer.html`, and `config.toml`. Additional files may need to exist for different modes.
 
