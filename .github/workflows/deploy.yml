@@ -34,7 +34,7 @@ jobs:
       - name: Publish can to the AUR
         uses: KSXGitHub/github-actions-deploy-aur@v2.2.5
         with:
-          pkgname: can
+          pkgname: sawsge
           pkgbuild: ./PKGBUILD
           commit_username: ${{ secrets.COMMIT_USERNAME }}
           commit_email: ${{ secrets.COMMIT_EMAIL }}
