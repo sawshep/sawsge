@@ -38,7 +38,7 @@ pkgbuild = <<~PKGBUILD
 
   _gemname=#{GEM_NAME}
   pkgname=#{PKG_NAME}
-  pkgver=#{Can::VERSION}
+  pkgver=#{Sawsge::VERSION}
   pkgrel=#{new_pkgrel}
   pkgdesc='Simple Markdown static site generator for blogs or projects'
   arch=(any)
