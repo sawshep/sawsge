@@ -8,12 +8,12 @@ require 'set'
 require 'toml'
 require 'uri'
 
-require_relative 'resource'
-require_relative 'page'
-require_relative 'post'
-require_relative 'home'
-require_relative 'blog'
-require_relative 'project'
+require 'sawsge/resource'
+require 'sawsge/page'
+require 'sawsge/post'
+require 'sawsge/home'
+require 'sawsge/blog'
+require 'sawsge/project'
 
 module Sawsge
   HELP_STRING = 'Usage: sawsge [DIRECTORY]'
