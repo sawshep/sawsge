@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-module Sawsge
+class Sawsge
   # The homepage
   class Home < Page
-    def initialize(path, posts)
-      super(path)
-      posts.each do |post|
+    def initialize(path, posts, config)
+      super(path, config)
+      posts.each_with_index do |post, _i|
         # Adds collapseable summary of each post on the front
         # page
         summary_fragment = Nokogiri::HTML5.fragment <<~HTML

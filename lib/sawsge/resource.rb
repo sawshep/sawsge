@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Sawsge
+class Sawsge
   # Any generic file in the website directory
   class Resource
     attr_reader :path
@@ -10,9 +10,9 @@ module Sawsge
       @path = path
     end
 
-    def build
-      FileUtils.mkpath File.join(OUT_DIRNAME, File.dirname(@path))
-      FileUtils.cp @path, File.join(OUT_DIRNAME, @path)
+    def build(out_dirname)
+      FileUtils.mkpath File.join(out_dirname, File.dirname(@path))
+      FileUtils.cp @path, File.join(out_dirname, @path)
     end
   end
 end

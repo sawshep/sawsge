@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-module Sawsge
-  def self.project
+class Sawsge
+  def project
     page_paths = @resource_paths.select { |path| File.extname(path) == '.md' }
 
-    @resource_paths.subtract page_paths
+    @resource_paths -= page_paths
 
-    page_objects = page_paths.map { |path| Page.new(path) }
+    page_objects = page_paths.map { |path| Page.new(path, @config) }
 
     @all_objects.merge page_objects
   end

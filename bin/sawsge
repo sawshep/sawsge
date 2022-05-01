@@ -3,4 +3,4 @@
 
 require 'sawsge'
 
-Sawsge.sawsge
+Sawsge.cli
