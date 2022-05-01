@@ -31,4 +31,5 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 3.0'
   s.add_runtime_dependency 'pandoc-ruby', '~> 2.1'
   s.add_runtime_dependency 'tomlrb', '~> 2.0', '>= 2.0.1'
+  s.add_runtime_dependency 'nokogiri', '~> 1.12', '>= 1.12.4'
 end
