@@ -7,6 +7,7 @@ require 'pathname'
 require 'set'
 require 'tomlrb'
 require 'uri'
+require 'parallel'
 
 require 'sawsge/resource'
 require 'sawsge/page'
@@ -61,5 +62,6 @@ class Sawsge
 
     # Write each file
     @all_objects.each { |x| x.build @config.out_dirname }
+    Parallel.each(@all_object) { |x| x.build @config.out_dirname }
   end
 end
