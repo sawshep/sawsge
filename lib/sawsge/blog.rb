@@ -15,9 +15,18 @@ class Sawsge
     @resource_paths.delete home_path
 
     post_objects = post_paths.map { |path| Post.new(path, @config) }
-    # So posts are added to Home in chronological order
-    #post_paths.reverse!
-    post_objects.sort_by! { |x| x.date }.reverse!
+
+    post_objects.sort_by! { |x| x.date }
+    # Posts are now in reverse chronological order
+
+    i_last_nil_date = 0
+    while post_objects[i_last_nil_date].date.empty?
+      i_last_nil_date += 1
+    end
+
+    post_objects.rotate!(i_last_nil_date).reverse!
+    # Posts are now in chronological order with dateless
+    # posts being first
 
     home_object = Home.new(home_path, post_objects, @config)
     @all_objects = post_objects + [home_object]
