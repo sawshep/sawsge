@@ -63,7 +63,6 @@ class Sawsge
     FileUtils.mkpath @config.out_dirname
 
     # Write each file
-    @all_objects.each { |x| x.build @config.out_dirname }
-    Parallel.each(@all_object) { |x| x.build @config.out_dirname }
+    Parallel.each(@all_objects) { |x| x.build @config.out_dirname }
   end
 end
