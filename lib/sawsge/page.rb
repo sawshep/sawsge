@@ -7,7 +7,13 @@ class Sawsge
 
     def initialize(path, config)
       super(path)
-      html_body_fragment = PandocRuby.convert(File.new(@path, 'r').read, from: :markdown, to: :html)
+
+      markdown = File.read(@path)
+      options = {
+        :from => :markdown,
+        :to   => :html
+      }
+      html_body_fragment = PandocRuby.convert(markdown, options)
 
       header = File.read config.header_path
       footer = File.read config.footer_path
