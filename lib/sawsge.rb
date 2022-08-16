@@ -3,11 +3,11 @@
 require 'fileutils'
 require 'nokogiri'
 require 'pandoc-ruby'
+require 'parallel'
 require 'pathname'
 require 'set'
 require 'tomlrb'
 require 'uri'
-require 'parallel'
 
 require 'sawsge/resource'
 require 'sawsge/page'
