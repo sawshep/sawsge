@@ -24,9 +24,10 @@ class Sawsge
       @header_path = File.expand_path(File.join(@src_dir, @header_filename))
       @footer_path = File.expand_path(File.join(@src_dir, @footer_filename))
 
-      @reserved_filenames = config[:general][:ignore] + [CONFIG_FILENAME, @header_filename, @footer_filename]
+      ignored_files = config[:general][:ignore] || []
+      @reserved_filenames = ignored_files + [CONFIG_FILENAME, @header_filename, @footer_filename]
 
-      @external_links_target_blank = config[:general][:external_links_target_blank]
+      @external_links_target_blank = config[:general][:external_links_target_blank] || true
 
       @posts_dirname = config[:blog][:posts_dirname]
     end
