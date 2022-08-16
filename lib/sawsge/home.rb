@@ -5,6 +5,7 @@ class Sawsge
   class Home < Page
     def initialize(path, posts, config)
       super(path, config)
+
       posts.each_with_index do |post, _i|
         # Adds collapseable summary of each post on the front
         # page
@@ -19,6 +20,7 @@ class Sawsge
         HTML
         @document.at_css('footer').add_previous_sibling summary_fragment
       end
+
     end
   end
 end

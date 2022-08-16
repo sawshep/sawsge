@@ -45,12 +45,14 @@ class Sawsge
     @resource_paths = Dir.glob('**/*').select do |path|
       File.file?(path) &&
         top_parent_dir(path) != @config.out_dirname &&
+        # Exclude explicitly ignored files
         !@config.reserved_filenames.include?(path)
     end
 
     @resource_objects = Set.new
     @all_objects = Set.new
 
+    # Execute blog or project specific code.
     send @config.mode
 
     resources = @resource_paths.map { |path| Resource.new(path) }

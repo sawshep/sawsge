@@ -10,10 +10,13 @@ class Sawsge
 
       # Get the summary and date of the post
       @summary = @document.css('summary').first.content
+      # If a date is specified within the <time> tag on the
+      # page, use that, otherwise use an empty string
       @date = begin
           date = @document.css('time').first
           date ? date.content : ''
       end
     end
+
   end
 end
