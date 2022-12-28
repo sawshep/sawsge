@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
   ]
   s.homepage    = 'https://github.com/sawshep/sawsge'
   s.license     = 'GPL-3.0'
-  s.required_ruby_version = '>= 3.0'
+  s.required_ruby_version = '>= 2.7'
   s.add_runtime_dependency 'pandoc-ruby', '~> 2.1'
   s.add_runtime_dependency 'tomlrb', '~> 2.0', '>= 2.0.1'
   s.add_runtime_dependency 'nokogiri', '~> 1.12', '>= 1.12.4'
